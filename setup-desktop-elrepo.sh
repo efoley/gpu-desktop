@@ -5,20 +5,27 @@ ssh -i "$1" -l "$2" -t "$3" bash -c "'
 sudo yum update -y
 sudo setenforce 0
 sudo yum install -y wget
-sudo yum install -y epel-release
-sudo yum groupinstall -y "MATE Desktop"
+
+# only needed for CentOS 7
+#sudo yum install -y epel-release
+#sudo yum groupinstall -y "MATE Desktop"
+
 wget https://github.com/rncry/gpu-desktop/raw/master/VirtualGL-2.4.1.x86_64.rpm
 wget https://github.com/rncry/gpu-desktop/raw/master/turbovnc-1.2.80.x86_64.rpm
-sudo yum install -y libXaw libXmu libXt xauth xdpyinfo glx-utils libXp xterm xorg-x11-xdm  xorg-x11-fonts-100dpi xorg-x11-fonts-ISO8859-9-100dpi xorg-x11-fonts-misc xorg-x11-fonts-Type1 gcc kernel-devel libGLU
+sudo yum install -y libXaw libXmu libXt xauth xdpyinfo glx-utils libXp xterm xorg-x11-xdm  xorg-x11-fonts-100dpi xorg-x11-fonts-ISO8859-9-100dpi xorg-x11-fonts-misc xorg-x11-fonts-Type1 gcc kernel-devel libGLU perl vim
 
-# this will give us OpenGL header files
-sudo yum install -y mesa-libGL-devel
+# this will give us OpenGL header files--not strictly necessary here
+#sudo yum install -y mesa-libGL-devel
 
 sudo rpm -ivh turbovnc-1.2.80.x86_64.rpm
 sudo rpm -ivh VirtualGL-2.4.1.x86_64.rpm
-wget http://us.download.nvidia.com/XFree86/Linux-x86_64/346.47/NVIDIA-Linux-x86_64-346.47.run
-chmod +x NVIDIA-Linux-x86_64-346.47.run
-sudo ./NVIDIA-Linux-x86_64-346.47.run -s -Z
+
+sudo rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+sudo rpm -Uvh http://www.elrepo.org/elrepo-release-6-6.el6.elrepo.noarch.rpm
+
+# we need the older driver for the K520
+sudo yum install kmod-nvidia-340xx
+
 sudo reboot
 '"
 
@@ -28,7 +35,6 @@ ssh -i "$1" -l "$2" -t "$3" 'sudo yum groupinstall -y "X Window System"'
 
 ssh -i "$1" -l "$2" -t "$3" bash -c "'
 sudo setenforce 0
-sudo ./NVIDIA-Linux-x86_64-346.47.run -s
 sudo /opt/VirtualGL/bin/vglserver_config -config +s +f +t
 wget https://github.com/rncry/gpu-desktop/raw/master/xorg.conf
 sudo cp xorg.conf /etc/X11/xorg.conf
